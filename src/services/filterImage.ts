@@ -9,6 +9,7 @@ import Jimp = require('jimp');
 // RETURNS
 //    an absolute path to a filtered image locally saved file
 export async function filterImageFromURL(inputURL: string, color: number): Promise<string> {
+
     console.log(color);
     //Filter image with greyscale color
     if (color == 1) {
@@ -22,10 +23,11 @@ export async function filterImageFromURL(inputURL: string, color: number): Promi
                 .greyscale()// set greyscale
                 .write(__dirname + outpath, (img) => {
                     resolve(__dirname + outpath);
+                    console.log(__dirname);
                 });
         });
     }
-        //Filter image with red color
+    //Filter image with red color
     else if (color == 2) {
         return new Promise(async resolve => {
             const font = await Jimp.loadFont(Jimp.FONT_SANS_16_WHITE);
@@ -40,7 +42,7 @@ export async function filterImageFromURL(inputURL: string, color: number): Promi
                 });
         });
     }
-        //Filter image with blue color
+    //Filter image with blue color
     else if (color == 3) {
         return new Promise(async resolve => {
             const font = await Jimp.loadFont(Jimp.FONT_SANS_16_WHITE);
@@ -55,7 +57,7 @@ export async function filterImageFromURL(inputURL: string, color: number): Promi
                 });
         });
     }
-        //Filter image with green color
+    //Filter image with green color
     else if (color == 4) {
         return new Promise(async resolve => {
             const font = await Jimp.loadFont(Jimp.FONT_SANS_16_WHITE);
@@ -115,6 +117,7 @@ export async function resizeImage(inputURL: string, width: number, height: numbe
 //    files: Array<string> an array of absolute paths to files
 export async function deleteLocalFiles(files: Array<string>) {
     for (let file of files) {
+        console.log(file);
         fs.unlinkSync(file);
         console.log("The files are deleted ..")
     }

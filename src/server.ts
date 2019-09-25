@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import express from 'express';
 import bodyParser from 'body-parser';
-import { filterImageFromURL, deleteLocalFiles, addTextToImage,resizeImage } from './services/filterImage';
+import { filterImageFromURL, deleteLocalFiles, addTextToImage, resizeImage } from './services/filterImage';
 
 (async () => {
 
@@ -36,40 +36,39 @@ import { filterImageFromURL, deleteLocalFiles, addTextToImage,resizeImage } from
 
   // Create Array to store the paths
   let filteredpath: Array<string> = new Array;
+
   // Displays the services to the user
   app.get("/", async (req, res) => {
     res.write("<div style='background: linear-gradient(45deg,DarkSlateGrey, Thistle); padding : 30px'>"
-    +"<div style='background-color:lightblue ; opacity: 0.5 ; text-align: center ; color:DarkSlateGray ; font-family:cursive' ><h1>Welcome to the Image Filering Application .. </h1></div>"
-    +"<div style='text-align: center ; font-size: 24px ;color:DarkSlateGray'>There are a lot of services you can do with Image Filering Application</div>"
-    +"<div style='text-align: center ; font-size: 24px ;color:DarkSlateGray ' >Entring the path according to the selected service that you want as the following:</div>"
-    +"<div style='text-align: center ; font-size: 24px ;border:2px solid white; color:DarkSlateGray ; margin: 10px;' >- Resizing the image </br>" 
-   + "http://localhost:{{PORT}}//filteredimage/resize/?image_url={url}&width={}&height={} </br>"
-   + "Width and height must be greater than zero and less than or equal to 1024</div>"
-   +"<div style='text-align: center ; font-size: 24px ; border:2px solid white ;color:DarkSlateGray; margin: 10px;' >- Adding text to the image </br>" 
-   + "http://localhost:{{PORT}}//filteredimage/addText/?image_url={url}&caption={}&text_color={} </br>"
-   +"The available colors are : </br>"
-   +"1- Black </br>"
-   +"2- White </br>"
-   +"Enter of the number of the color that you want </br>"
-   + "Caption words must be at most 5 words, and the default color is white </div>"
-   +"<div style='text-align: center ; font-size: 24px ; border:2px solid white ;color:DarkSlateGray ; margin: 10px;' >- Filtering the image </br>" 
-   + "http://localhost:{{PORT}}//filteredimage/?image_url={url}&caption={}&color={} </br>"
-   +"The available colors are : </br>"
-   +"1- Grayscale </br>"
-   +"2- Red </br>"
-   +"3- Blue </br>"
-   +"4- Green </br>"
-   +"Enter of the number of the color that you want </br>"
-   +"</div>"
-   +"<div style='text-align: center ; font-size: 24px ; color:white ; margin:20px' >Note: to provide a good service to you, enter the path with his parameters in a correct way.</div></div>");
+      + "<div style='background-color:lightblue ; opacity: 0.5 ; text-align: center ; color:DarkSlateGray ; font-family:cursive' ><h1>Welcome to the Image Filering Application .. </h1></div>"
+      + "<div style='text-align: center ; font-size: 24px ;color:DarkSlateGray'>There are a lot of services you can do with Image Filering Application</div>"
+      + "<div style='text-align: center ; font-size: 24px ;color:DarkSlateGray ' >Entring the path according to the selected service that you want as the following:</div>"
+      + "<div style='text-align: center ; font-size: 24px ;border:2px solid white; color:DarkSlateGray ; margin: 10px;' >- Resizing the image </br>"
+      + "http://image-filter-application.us-east-1.elasticbeanstalk.com/filteredimage/resize/?image_url={url}&width={}&height={} </br>"
+      + "Width and height must be greater than zero and less than or equal to 1024</div>"
+      + "<div style='text-align: center ; font-size: 24px ; border:2px solid white ;color:DarkSlateGray; margin: 10px;' >- Adding text to the image </br>"
+      + "http://image-filter-application.us-east-1.elasticbeanstalk.com/filteredimage/addText/?image_url={url}&caption={}&text_color={} </br>"
+      + "The available colors are : </br>"
+      + "1- Black </br>"
+      + "2- White </br>"
+      + "Enter of the number of the color that you want </br>"
+      + "Caption words must be at most 5 words, and the default color is white </div>"
+      + "<div style='text-align: center ; font-size: 24px ; border:2px solid white ;color:DarkSlateGray ; margin: 10px;' >- Filtering the image </br>"
+      + "http://image-filter-application.us-east-1.elasticbeanstalk.com/filteredimage/?image_url={url}&caption={}&color={} </br>"
+      + "The available colors are : </br>"
+      + "1- Grayscale </br>"
+      + "2- Red </br>"
+      + "3- Blue </br>"
+      + "4- Green </br>"
+      + "Enter of the number of the color that you want </br>"
+      + "</div>"
+      + "<div style='text-align: center ; font-size: 24px ; color:white ; margin:20px' >Note: to provide a good service to you, enter the path with his parameters in a correct way.</div></div>");
     res.send();
   });
   //Filter Image
   app.get("/filteredimage/", async (req, res) => {
     let { image_url } = req.query;
-    console.log(image_url);
     let { color } = req.query;
-    console.log(color);
     //Check the parameters
     if (!image_url) {
       res.status(400).send("Please enter a URL..!");
@@ -84,18 +83,23 @@ import { filterImageFromURL, deleteLocalFiles, addTextToImage,resizeImage } from
       res.status(422).send("Please enter a valid URL..!");
     }
     //Call function to filter image
-    const filterImage = filterImageFromURL(image_url, color);
-    filterImage.then(function (result) {
-      console.log("Filtering the Image");
-      //Store the returned path
-      filteredpath.push(result);
-      res.status(200).send("The image path is: " + result);
-      //Delete the file after sending the path
+    try {
+      const filterImage = filterImageFromURL(image_url, color);
+      filterImage.then(function (result) {
+        console.log("Filtering the Image");
+        //Store the returned path
+        filteredpath.push(result);
+        res.status(200).sendFile(result);
+      }, function (err) {
+        res.status(402).send(err);
+      });
+    }
+    catch (e) {
+      console.log(e);
+    }
+    finally {
       deleteLocalFiles(filteredpath);
-    }, function (err) {
-      res.status(402).send(err);
-    });
-
+    }
   });
   //Add text to the Image 
   app.get("/filteredimage/addText/", async (req, res) => {
@@ -125,9 +129,7 @@ import { filterImageFromURL, deleteLocalFiles, addTextToImage,resizeImage } from
         console.log(" Adding text to the Image");
         //Store the returned path
         filteredpath.push(result);
-        res.status(200).send("The image path is: " + result);
-        //Delete the file after send the path
-         deleteLocalFiles(filteredpath);
+        res.status(200).sendFile(result);
       }, function (err) {
         res.status(402).send(err);
       });
@@ -135,51 +137,55 @@ import { filterImageFromURL, deleteLocalFiles, addTextToImage,resizeImage } from
     catch (e) {
       console.log(e);
     }
+    finally {
+      deleteLocalFiles(filteredpath);
+    }
   });
   //Resize the image
   app.get("/filteredimage/resize/", async (req, res) => {
-   let {image_url } = req.query;
-   let {width} = req.query;
-   let {height} = req.query;
-  //Check the parameters
-  if (!image_url) {
-    res.status(400).send("Please enter a URL..!");
-  }
-  if (!width) {
-    res.status(400).send("Please enter the width ..!");
-  }
-  if (!height) {
-    res.status(400).send("Please enter the height..!");
-  }
-  if (!checkUrl(image_url)) {
-    res.status(422).send("Please enter a valid URL..!");
-  }
-   if (width >= 1025 || height >= 1025){
-     res.status(422).send("The muximum size is 1024 ..!");
-   }
-   if (width <= 0 || height <= 0){
-    res.status(422).send("The minimum size is 1 ..!");
-  }
-  try {
-    //Stroes the width and height in a numbers variables
-    var width_siz : number = Number(width);
-    var height_siz : number = Number(height);
-    //Call the function to resize the image
-    const filterImage = resizeImage (image_url,width_siz,height_siz);
-    filterImage.then(function (result) {
-    console.log(" Resizing the Image");
-      ///Store the returned path
-      filteredpath.push(result);
-      res.status(200).send("The image path is:" + result);
-      //Delete the file after send the path
-       deleteLocalFiles(filteredpath);
-    }, function (err) {
-      res.status(402).send(err);
-    });
-  }
-  catch (e) {
-    console.log(e);
-  }
+    let { image_url } = req.query;
+    let { width } = req.query;
+    let { height } = req.query;
+    //Check the parameters
+    if (!image_url) {
+      res.status(400).send("Please enter a URL..!");
+    }
+    if (!width) {
+      res.status(400).send("Please enter the width ..!");
+    }
+    if (!height) {
+      res.status(400).send("Please enter the height..!");
+    }
+    if (!checkUrl(image_url)) {
+      res.status(422).send("Please enter a valid URL..!");
+    }
+    if (width >= 1025 || height >= 1025) {
+      res.status(422).send("The muximum size is 1024 ..!");
+    }
+    if (width <= 0 || height <= 0) {
+      res.status(422).send("The minimum size is 1 ..!");
+    }
+    try {
+      //Stroes the width and height in a numbers variables
+      var width_siz: number = Number(width);
+      var height_siz: number = Number(height);
+      //Call the function to resize the image
+      const filterImage = resizeImage(image_url, width_siz, height_siz);
+      filterImage.then(function (result) {
+        console.log(" Resizing the Image");
+        ///Store the returned path
+        filteredpath.push(result);
+        res.status(200).sendFile(result);
+      }, function (err) {
+        res.status(402).send(err);
+      });
+    }
+    catch (e) {
+      console.log(e);
+    }
+    finally {
+      deleteLocalFiles(filteredpath);
+    }
 
   });
 
@@ -191,6 +197,9 @@ import { filterImageFromURL, deleteLocalFiles, addTextToImage,resizeImage } from
       return true;
     } catch (err) {
       return false;
+    }
+    finally {
+      deleteLocalFiles(filteredpath);
     }
   }
   //Count words
